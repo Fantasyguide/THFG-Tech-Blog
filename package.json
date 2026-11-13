@@ -1,0 +1,23 @@
+{
+  "name": "fantasyguide-article-workflow",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "styles": "node scripts/build-style-demos.mjs",
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "check:visual": "node scripts/check-visual.mjs",
+    "preview": "node scripts/serve.mjs"
+  },
+  "dependencies": {
+    "linkedom": "0.18.15",
+    "markdown-it": "15.0.3",
+    "marked": "18.2.0"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  }
+}

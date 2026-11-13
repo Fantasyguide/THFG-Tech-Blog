@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>__TITLE__ · 本地预览</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #1d1e20; background: #fff; font: 14px/1.6 system-ui, sans-serif; }
+    .preview-toolbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; }
+    .preview-label { font-size: 13px; color: #6b6c6e; }
+    .preview-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .preview-toolbar button { margin: 0; border: 1px solid #e8e8e8; border-radius: 5px; padding: 8px 12px; background: #fff; color: #1d1e20; font: inherit; cursor: pointer; }
+    .preview-toolbar button:first-child { background: #1d1e20; color: white; border-color: #1d1e20; }
+    .preview-toolbar button:focus-visible { outline: 2px solid #1d1e20; outline-offset: 3px; }
+    #copy-status { flex-basis: 100%; color: #6b6c6e; }
+    #copy-status:empty { display: none; }
+    #source-panel { max-width: 1000px; margin: 24px auto; padding: 0 20px; }
+    #source-panel textarea { display: block; width: 100%; height: 300px; padding: 16px; border: 1px solid #e8e8e8; font: 13px/1.7 ui-monospace, monospace; }
+    #preview-mount { max-width: 1114px; margin: 32px auto; }
+    @media(max-width:768px) { .preview-toolbar { position: static; padding: 12px 16px; } #preview-mount { margin: 0 auto; } }
+  </style>
+</head>
+<body>
+  <header class="preview-toolbar">
+    <span class="preview-label">PaperMod 排版预览 · __IMAGE_STATUS__</span>
+    <div class="preview-actions">
+      <button type="button" id="copy">复制到网站编辑器</button>
+      <button type="button" id="show-source" aria-expanded="false" aria-controls="source-panel">查看源码</button>
+    </div>
+    <span id="copy-status" role="status" aria-live="polite"></span>
+  </header>
+  <section id="source-panel" hidden>
+    <label for="source">将以下全部源码粘贴到网站的代码编辑区，再点击“预览”。</label>
+    <textarea id="source" readonly spellcheck="false"></textarea>
+  </section>
+  <main id="preview-mount"></main>
+  <script>
+    const paste = __PASTE_JSON__;
+    const previewImages = __PREVIEW_IMAGES_JSON__;
+    const source = document.getElementById('source');
+    const panel = document.getElementById('source-panel');
+    const toggle = document.getElementById('show-source');
+    const status = document.getElementById('copy-status');
+    source.value = paste;
+    // Swap image paths in an inert fragment before mounting: copying still uses the
+    // original site paths, while the preview needs no requests to the live website.
+    const preview = document.createElement('template');
+    preview.innerHTML = paste;
+    for (const element of preview.content.querySelectorAll('img[src],a[href]')) {
+      const attribute = element.tagName === 'IMG' ? 'src' : 'href';
+      const local = previewImages[element.getAttribute(attribute)];
+      if (local) element.setAttribute(attribute, local);
+    }
+    document.getElementById('preview-mount').append(preview.content);
+    function showSource() { panel.hidden = false; toggle.setAttribute('aria-expanded', 'true'); toggle.textContent = '收起源码'; }
+    toggle.addEventListener('click', () => {
+      panel.hidden = !panel.hidden;
+      toggle.setAttribute('aria-expanded', String(!panel.hidden));
+      toggle.textContent = panel.hidden ? '查看源码' : '收起源码';
+    });
+    document.getElementById('copy').addEventListener('click', async () => {
+      try {
+        if (!navigator.clipboard || !window.isSecureContext) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(paste);
+        status.textContent = '源码已复制。粘贴到网站代码编辑区，再点击“预览”。';
+      } catch {
+        showSource(); source.focus(); source.select();
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch {}
+        status.textContent = copied ? '源码已复制。粘贴到网站代码编辑区，再点击“预览”。' : '浏览器未允许自动复制，源码已选中，请按 Ctrl+C（Mac 使用 ⌘C）。';
+      }
+    });
+  </script>
+</body>
+</html>
