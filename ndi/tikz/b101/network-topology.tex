@@ -1,0 +1,102 @@
+% Compile with XeLaTeX:
+%   xelatex -interaction=nonstopmode -halt-on-error network-topology.tex
+% Export a PNG preview:
+%   pdftoppm -png -singlefile -r 180 network-topology.pdf network-topology
+\documentclass[tikz,border=8mm]{standalone}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{texgyreheros-regular.otf}[
+  BoldFont=texgyreheros-bold.otf
+]
+\setCJKmainfont{FandolHei-Regular.otf}[
+  BoldFont=FandolHei-Bold.otf
+]
+\usetikzlibrary{calc}
+
+\definecolor{ink}{HTML}{233247}
+\definecolor{muted}{HTML}{697586}
+\definecolor{lan}{HTML}{3173B9}
+\definecolor{lanfill}{HTML}{F1F7FD}
+\definecolor{wan}{HTML}{BA792C}
+\definecolor{wanfill}{HTML}{FFF8ED}
+\definecolor{outline}{HTML}{B8C8D8}
+\definecolor{roomfill}{HTML}{F8FAFC}
+\definecolor{roomline}{HTML}{94A3B8}
+
+\begin{document}
+\begin{tikzpicture}[
+  font=\normalsize,
+  text=ink,
+  device/.style={
+    draw=outline, fill=white, line width=0.9pt,
+    rounded corners=3mm,
+    minimum width=3cm, minimum height=1.15cm,
+    inner sep=3mm, align=center,
+    font=\large\bfseries
+  },
+  cable/.style={line width=1.6pt, line cap=round, line join=round},
+  portlabel/.style={
+    font=\small, text=lan,
+    inner xsep=1mm, inner ysep=0.5mm
+  }
+]
+  \node[font=\Large\bfseries] at (4.5,7.8) {B101网络连接拓扑};
+
+  % The control room contains only the venue jack, router and director PC.
+  % Draw its boundary first so that the outgoing cable remains continuous.
+  \draw[draw=roomline, fill=roomfill, line width=0.9pt,
+        dash pattern=on 4pt off 3pt, rounded corners=4mm]
+    (-2.5,-0.95) rectangle (2.5,6.95);
+  \node[font=\large\bfseries, text=muted] at (0,6.5) {中控室内};
+
+  % Devices: the two lower computers share the same switch.
+  \node[device, draw=wan, fill=wanfill] (venue) at (0,5.5)
+    {场地网口};
+  \node[device, draw=lan, fill=lanfill, minimum width=3.6cm,
+        minimum height=2cm] (router) at (0,3.2)
+    {路由器};
+  \node[device] (director) at (0,0.3) {导播电脑};
+  \node[device, draw=lan, fill=lanfill] (switch) at (8,0.3)
+    {交换机};
+  \node[device] (pc1) at (6,-2.5) {电脑 1};
+  \node[device] (pc2) at (10,-2.5) {电脑 2};
+
+  % WAN: venue wall jack to the router's WAN port.
+  \draw[cable, wan] (venue.south) -- (router.north);
+  \node[portlabel, text=wan, anchor=north]
+    at ($(router.north)+(0,-0.12)$) {WAN 口};
+
+  % Each route starts at a separate LAN port on the router.
+  \coordinate (router-lan-a) at ($(router.south)+(-0.8,0)$);
+  \coordinate (router-lan-b) at ($(router.south)+(0.8,0)$);
+  \node[portlabel, anchor=south]
+    at ($(router-lan-a)+(0,0.12)$) {LAN 口};
+  \node[portlabel, anchor=south]
+    at ($(router-lan-b)+(0,0.12)$) {LAN 口};
+  \draw[cable, lan] (router-lan-a)
+    -- (-0.8,1.4) -- (0,1.4) -- (director.north);
+  \draw[cable, lan] (router-lan-b)
+    -- (0.8,1.8) -- (8,1.8) -- (switch.north);
+  \node[font=\small, text=lan, above=2mm]
+    at (5.25,1.8) {超长网线（$\geq 10\,\mathrm{m}$）};
+
+  % Two separate Ethernet cables from the switch to the computers.
+  \coordinate (switch-port-a) at ($(switch.south)+(-0.65,0)$);
+  \coordinate (switch-port-b) at ($(switch.south)+(0.65,0)$);
+  \draw[cable, lan] (switch-port-a)
+    -- (7.35,-0.95) -- (6,-0.95) -- (pc1.north);
+  \draw[cable, lan] (switch-port-b)
+    -- (8.65,-0.95) -- (10,-0.95) -- (pc2.north);
+
+  % Small markers identify the actual cable endpoints.
+  \foreach \port in {venue.south,router.north}
+    \fill[wan] (\port) circle[radius=1.5pt];
+  \foreach \port in {router-lan-a,router-lan-b,director.north,
+                     switch.north,switch-port-a,switch-port-b,
+                     pc1.north,pc2.north}
+    \fill[lan] (\port) circle[radius=1.5pt];
+
+  \node[font=\small, text=muted] at (4.5,-3.8)
+    {所有连线均为网线连接};
+\end{tikzpicture}
+\end{document}
