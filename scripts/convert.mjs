@@ -52,6 +52,15 @@ export function convert(source, { css, name = 'article', imageBase = '' }) {
   const byline = bylineNode?.innerHTML || '';
   bylineNode?.remove();
 
+  const attachments = [];
+  for (const anchor of body.querySelectorAll('a[href]')) {
+    const src = anchor.getAttribute('href');
+    if (!/\.pdf$/i.test(src)) continue;
+    const target = targetImagePath(src);
+    if (!target) continue;
+    attachments.push({ src, target });
+    anchor.setAttribute('href', target);
+  }
   const images = [];
   for (const image of [...body.querySelectorAll('img')]) {
     const figure = image.closest('figure');
@@ -129,5 +138,5 @@ ${toc}
   // Keep the style inside the HTML block: the site's standalone-style rewriter cannot
   // correctly scope comma selectors inside @media. Every rule is explicitly scoped here.
   const paste = `<!-- 本地生成；${images.some(image => image.target) ? '图片使用站内路径' : '图片待补'}。此文本不包含保存或发布操作。 -->\n<div class="fg-article-package">\n<style>\n${css}\n</style>\n${article}\n</div>\n`;
-  return { paste, title, headings, images, wordCount };
+  return { paste, title, headings, images, attachments, wordCount };
 }

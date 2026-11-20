@@ -42,7 +42,7 @@ for (const file of files) {
   await mkdir(path.dirname(destination), { recursive: true });
   const previewImages = {};
   const imageSources = new Map();
-  for (const image of result.images.filter(image => image.target && !image.src.startsWith('/'))) {
+  for (const image of [...result.images, ...result.attachments].filter(image => image.target && !image.src.startsWith('/'))) {
     const local = await realpath(path.resolve(path.dirname(file), decodeURIComponent(image.src.split(/[?#]/)[0])));
     if (!local.startsWith(projectReal + path.sep)) throw new Error('图片必须位于项目内：' + image.src);
     if (imageSources.has(image.target) && imageSources.get(image.target) !== local) throw new Error('站内图片文件名冲突：' + image.target);
@@ -56,6 +56,7 @@ for (const file of files) {
   }
   await writeFile(destination + '.paste.html', result.paste);
   await writeFile(destination + '.images.json', JSON.stringify(result.images, null, 2) + '\n');
+  await writeFile(destination + '.attachments.json', JSON.stringify(result.attachments, null, 2) + '\n');
   const preview = template.replaceAll('__TITLE__', escapeHTML(result.title))
     .replace('__IMAGE_STATUS__', Object.keys(previewImages).length ? '图片使用本地副本' : '图片待补')
     .replace('__PASTE_JSON__', scriptJSON(result.paste))
