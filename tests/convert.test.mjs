@@ -13,6 +13,14 @@ const original = render(marked.parse(source));
 const result = convert(source, { css, name: 'obs' });
 const converted = render(result.paste);
 
+test('SVG figures retain separately linked PNG originals as site attachments', () => {
+  const result = convert('<figure><a href="tikz/diagram.png"><img src="tikz/diagram.svg" alt="图"></a></figure>', { css: '', imageBase: '/backend/file/article_file/tech_ndi/' });
+  const document = render(result.paste);
+  assert.equal(document.querySelector('img').getAttribute('src'), '/backend/file/article_file/tech_ndi/diagram.svg');
+  assert.equal(document.querySelector('figure a').getAttribute('href'), '/backend/file/article_file/tech_ndi/diagram.png');
+  assert.deepEqual(result.attachments, [{ src: 'tikz/diagram.png', target: '/backend/file/article_file/tech_ndi/diagram.png' }]);
+});
+
 test('preserves the actual article text and structural elements', () => {
   assert.equal(converted.querySelector('h1').textContent, original.querySelector('h1').textContent);
   const body = converted.querySelector('.fg-body');

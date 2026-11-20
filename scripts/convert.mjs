@@ -55,7 +55,9 @@ export function convert(source, { css, name = 'article', imageBase = '' }) {
   const attachments = [];
   for (const anchor of body.querySelectorAll('a[href]')) {
     const src = anchor.getAttribute('href');
-    if (!/\.pdf$/i.test(src)) continue;
+    const image = anchor.querySelector('img');
+    const separateImage = image && src !== image.getAttribute('src') && /\.(?:png|jpe?g|webp|gif|svg)$/i.test(src);
+    if (!/\.pdf$/i.test(src) && !separateImage) continue;
     const target = targetImagePath(src);
     if (!target) continue;
     attachments.push({ src, target });

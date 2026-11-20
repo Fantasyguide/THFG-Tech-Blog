@@ -26,7 +26,9 @@
 
 > **友情链接·例会技术姿势补完计划**
 > 
-> [东方Project同人例会录制/直播指北](https://qwqpap.com/recording)
+> - [东方例会游戏推流的实验性方案：NDI](https://fantasyguide.cn/articles/tech_ndi)
+> 
+> - [东方Project同人例会录制/直播指北](https://qwqpap.com/recording)
 
 
 ## 前置说明
